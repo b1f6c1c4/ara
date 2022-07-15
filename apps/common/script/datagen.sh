@@ -28,6 +28,12 @@ then
   args="${@:2}"
   # Use default values if args is not set
   [ -z "$args" ] && args="112 7"
+elif [[ $1 == *"exp"* ]]
+then
+  # Convolutions need args to be passed along
+  args="${@:2}"
+  # Use default values if args is not set
+  [ -z "$args" ] && args="4"
 else
   # Other program datagens do not need any arguments
   args=
