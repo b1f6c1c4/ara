@@ -33,13 +33,19 @@ then
   # Convolutions need args to be passed along
   args="${@:2}"
   # Use default values if args is not set
-  [ -z "$args" ] && args="128"
+  [ -z "$args" ] && args="257"
 elif [[ $1 == *"cos"* ]]
 then
   # Convolutions need args to be passed along
   args="${@:2}"
   # Use default values if args is not set
-  [ -z "$args" ] && args="128"
+  [ -z "$args" ] && args="257"
+elif [[ $1 == *"log"* ]]
+then
+  # Convolutions need args to be passed along
+  args="${@:2}"
+  # Use default values if args is not set
+  [ -z "$args" ] && args="257"
 else
   # Other program datagens do not need any arguments
   args=
