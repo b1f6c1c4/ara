@@ -30,11 +30,14 @@ rule ld &ldflags+=' -static -nostartfiles -lm'
 >     command = llvm-strip $in -S --strip-unneeded -o $out
 >     description = strip $in
 > rule vlt
->     command = mkdir -p $mdir && verilator $vltflags --Mdir $mdir -f $in --cc --exe --build 2>$mdir/vlt.log && ln -srf $mdir/Vara_tb_verilator $out
+>     command = rm -rf $mdir && mkdir -p $mdir && verilator $vltflags --Mdir $mdir -f $in --cc --exe --build -j >$mdir/vlt.log 2>&1 && ln -srf $mdir/Vara_tb_verilator $out
 >     description = verilator $mdir
+>     pool = vlt
 > rule simv
 >     command = $in -l ram,$mem,elf >$out 2>&1
 >     description = simv $in
+> pool vlt
+>     depth = 1
 
 list c ::=
     += 4 4096
@@ -44,14 +47,12 @@ list c ::=
 foreach c {
     rule cc cxx as &cflags+=" -DNR_LANES=$c -DVLEN=$c0"
     rule ld &ldflags+=" -Tbuild/l$cv$c0/link.ld"
+    rule vlt &vltflags+=" +define+NR_LANES=$c"
+    rule vlt &vltflags+=" +define+VLEN=$c0"
+    rule vlt &vltflags+=" -GNrLanes=$c"
+    rule vlt &vltflags+=" -CFLAGS -DNR_LANES=$c"
 
-    (verilator.sh) --vlt
-        &vltflags+=" +define+NR_LANES=$c"
-        &vltflags+=" +define+VLEN=$c0"
-        &vltflags+=" -GNrLanes=$c"
-        &vltflags+=" -CFLAGS -DNR_LANES=$c"
-        &mdir="build/l$cv$c0/vlt_dir"
-    -- (build/l$cv$c0/vlt)
+    (verilator.sh) --vlt&mdir="build/l$cv$c0/vlt_dir"-- (build/l$cv$c0/vlt)
 
     [
         (../common/crt0.S) --as-- (build/l$cv$c0/rt/crt0.o)
@@ -70,5 +71,5 @@ foreach c {
     [
         (build/l$cv$c0/main.stripped)~
         (build/l$cv$c0/vlt)
-    ] --simv&mem="build/l$cv$c0/main.stripped"-- (build/L$cv$c0/main.log)
+    ] --simv&mem="build/l$cv$c0/main.stripped"-- (build/l$cv$c0/main.log)
 }

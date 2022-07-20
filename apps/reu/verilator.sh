@@ -421,14 +421,14 @@
 -I../../hardware/tb/dpi
 --compiler clang
 -CFLAGS "-DTOPLEVEL_NAME=ara_tb_verilator"
--CFLAGS -I../../hardware/tb/verilator/lowrisc_dv_verilator_memutil_dpi/cpp
--CFLAGS -I../../hardware/tb/verilator/lowrisc_dv_verilator_memutil_verilator/cpp
--CFLAGS -I../../hardware/tb/verilator/lowrisc_dv_verilator_simutil_verilator/cpp
+-CFLAGS -I../../../../../hardware/tb/verilator/lowrisc_dv_verilator_memutil_dpi/cpp
+-CFLAGS -I../../../../../hardware/tb/verilator/lowrisc_dv_verilator_memutil_verilator/cpp
+-CFLAGS -I../../../../../hardware/tb/verilator/lowrisc_dv_verilator_simutil_verilator/cpp
 -LDFLAGS "-lelf"
-../../hardware/tb/verilator/lowrisc_dv_verilator_memutil_dpi/cpp/dpi_memutil.cc
-../../hardware/tb/verilator/lowrisc_dv_verilator_memutil_dpi/cpp/sv_scoped.cc
-../../hardware/tb/verilator/lowrisc_dv_verilator_memutil_verilator/cpp/verilator_memutil.cc
-../../hardware/tb/verilator/lowrisc_dv_verilator_simutil_verilator/cpp/verilated_toplevel.cc
-../../hardware/tb/verilator/lowrisc_dv_verilator_simutil_verilator/cpp/verilator_sim_ctrl.cc
-../../hardware/tb/verilator/ara_tb.cpp
+../../../../../hardware/tb/verilator/lowrisc_dv_verilator_memutil_dpi/cpp/dpi_memutil.cc
+../../../../../hardware/tb/verilator/lowrisc_dv_verilator_memutil_dpi/cpp/sv_scoped.cc
+../../../../../hardware/tb/verilator/lowrisc_dv_verilator_memutil_verilator/cpp/verilator_memutil.cc
+../../../../../hardware/tb/verilator/lowrisc_dv_verilator_simutil_verilator/cpp/verilated_toplevel.cc
+../../../../../hardware/tb/verilator/lowrisc_dv_verilator_simutil_verilator/cpp/verilator_sim_ctrl.cc
+../../../../../hardware/tb/verilator/ara_tb.cpp
 --top-module ara_tb_verilator
