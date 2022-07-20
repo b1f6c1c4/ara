@@ -1,0 +1,74 @@
+> rule linker_script
+>     command = sed 's/ALIGNMENT/4*$nr/g' $in > $out
+>     description = linker_script $nr
+
+rule cc cxx as ld &llvmflags+=' --target=riscv64-unknown-linux-gnu'
+rule cc cxx as ld &llvmflags+=' --gcc-toolchain=/opt/x-tools/riscv64-unknown-linux-gnu/'
+rule cc cxx as ld &llvmflags+=' --sysroot=/opt/x-tools/riscv64-unknown-linux-gnu/riscv64-unknown-linux-gnu/sysroot/'
+rule cc cxx as &cflags+=' -march=rv64gcv -mabi=lp64d -mno-relax -fuse-ld=lld'
+rule cc cxx as &cflags+=' -mcmodel=medany -std=gnu2x -O3 -ffast-math -fno-common -fno-builtin-printf'
+rule cc cxx as &cflags+=' -Wunused-variable -Wall -Wextra -Wno-unused-command-line-argument'
+rule cc cxx as &cflags+=' -I../common/'
+rule ld &ldflags+=' -static -nostartfiles -lm'
+
+> rule cc
+>     command = clang $llvmflags $cflags -c $in -o $out
+>     description = cc $in
+> rule cxx
+>     command = clang $llvmflags $cflags $cxxflags -c $in -o $out
+>     description = cxx $in
+> rule as
+>     command = clang $llvmflags $cflags -c $in -o $out
+>     description = as $in
+> rule ld
+>     command = clang $llvmflags $ldflags $in -o $out
+>     description = ld $out
+> rule ar
+>     command = ar rcs $out $in
+>     description = ar $out
+> rule strip
+>     command = llvm-strip $in -S --strip-unneeded -o $out
+>     description = strip $in
+> rule vlt
+>     command = mkdir -p $mdir && verilator $vltflags --Mdir $mdir -f $in --cc --exe --build 2>$mdir/vlt.log && ln -srf $mdir/Vara_tb_verilator $out
+>     description = verilator $mdir
+> rule simv
+>     command = $in -l ram,$mem,elf >$out 2>&1
+>     description = simv $in
+
+list c ::=
+    += 4 4096
+    += 8 4096
+    += 16 4096
+
+foreach c {
+    rule cc cxx as &cflags+=" -DNR_LANES=$c -DVLEN=$c0"
+    rule ld &ldflags+=" -Tbuild/l$cv$c0/link.ld"
+
+    (verilator.sh) --vlt
+        &vltflags+=" +define+NR_LANES=$c"
+        &vltflags+=" +define+VLEN=$c0"
+        &vltflags+=" -GNrLanes=$c"
+        &vltflags+=" -CFLAGS -DNR_LANES=$c"
+        &mdir="build/l$cv$c0/vlt_dir"
+    -- (build/l$cv$c0/vlt)
+
+    [
+        (../common/crt0.S) --as-- (build/l$cv$c0/rt/crt0.o)
+        (../common/printf.c) --cc-- (build/l$cv$c0/rt/printf.o)
+        (../common/string.c) --cc-- (build/l$cv$c0/rt/string.o)
+        (../common/serial.c) --cc-- (build/l$cv$c0/rt/serial.o)
+    ] --ar-- (build/l$cv$c0/librt.a)
+
+    [
+        (main.c) --cc-- (build/l$cv$c0/main.o)
+        (../common/arch.link.ld) --linker_script&nr=$c-- (build/l$cv$c0/link.ld)~
+        (build/l$cv$c0/librt.a)
+    ] --ld-- (build/l$cv$c0/main)
+        --strip-- (build/l$cv$c0/main.stripped)
+
+    [
+        (build/l$cv$c0/main.stripped)~
+        (build/l$cv$c0/vlt)
+    ] --simv&mem="build/l$cv$c0/main.stripped"-- (build/L$cv$c0/main.log)
+}
